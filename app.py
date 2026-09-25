@@ -41,6 +41,17 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 init_db()
 
 
+def current_application_date() -> date:
+    """Return the real date, or a developer-only date override for testing."""
+    test_date = os.getenv("CLASSTRACK_TEST_DATE", "").strip()
+    if test_date:
+        try:
+            return date.fromisoformat(test_date)
+        except ValueError as exc:
+            raise RuntimeError("CLASSTRACK_TEST_DATE must use YYYY-MM-DD format.") from exc
+    return date.today()
+
+
 def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
@@ -85,10 +96,16 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok"})
+
+
 @app.route("/")
 @login_required
 def home():
-    today_iso = date.today().isoformat()
+    today = current_application_date()
+    today_iso = today.isoformat()
     today_attendance = get_dashboard_attendance(today_iso)
     recent_attendance = [
         {
@@ -108,13 +125,15 @@ def home():
 @login_required
 def attendance():
     students = get_students("")
-    today_iso = date.today().isoformat()
+    today = current_application_date()
+    today_iso = today.isoformat()
     saved_attendance = load_attendance_for_date(today_iso)
     return render_template(
         "attendance.html",
         students=students,
         saved_attendance=saved_attendance,
         attendance_date=today_iso,
+        attendance_date_display=today.strftime("%d %B %Y"),
     )
 
 
@@ -133,19 +152,14 @@ def get_attendance(attendance_date):
 @login_required
 def save_attendance():
     payload = request.get_json(silent=True) or {}
-    attendance_date = payload.get("date")
     attendance_items = payload.get("attendance")
-
-    if not attendance_date:
-        return jsonify({"error": "A valid date is required."}), 400
 
     if not isinstance(attendance_items, list):
         return jsonify({"error": "Attendance data is missing or malformed."}), 400
 
     try:
-        parsed_date = date.fromisoformat(attendance_date)
-        if parsed_date.isoformat() != attendance_date:
-            raise ValueError("A valid date is required.")
+        parsed_date = current_application_date()
+        attendance_date = parsed_date.isoformat()
 
         attendance_map = {}
         for item in attendance_items:
@@ -278,4 +292,8 @@ def students():
 
 
 if __name__ == "__main__":
-    app.run(debug=os.getenv("FLASK_DEBUG", "0") == "1")
+    app.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "5000")),
+        debug=os.getenv("FLASK_DEBUG", "0") == "1",
+    )

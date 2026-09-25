@@ -5,15 +5,15 @@
 {% block content %}
 <script>
     window.initialSavedAttendance = {{ saved_attendance|tojson }};
-    window.attendanceDate = {{ attendance_date|tojson }};
+    window.attendanceDateDisplay = {{ (attendance_date_display|default(attendance_date))|tojson }};
 </script>
 <section class="page-heading reveal">
     <div>
         <p class="eyebrow">Daily register</p>
-        <h1>Attendance</h1>
+        <h1>Today's Attendance</h1>
         <p class="page-description">Record today’s attendance for your class.</p>
     </div>
-    <div class="date-display"><span>Today’s Date</span><strong id="today-date">—</strong></div>
+    <div class="date-display"><span>Date</span><strong id="today-date">{{ attendance_date_display|default(attendance_date) }}</strong></div>
 </section>
 
 <section class="stats-grid compact reveal" aria-label="Today’s attendance summary">

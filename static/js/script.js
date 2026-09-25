@@ -110,15 +110,10 @@ document.querySelector(".attendance-clear-all")?.addEventListener("click", () =>
 });
 
 const todayDate = document.getElementById("today-date");
-const todayIsoDate = window.attendanceDate || new Date().toISOString().slice(0, 10);
+const attendanceDateDisplay = window.attendanceDateDisplay || "";
 
 if (todayDate) {
-    const now = new Date();
-    todayDate.textContent = now.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
+    todayDate.textContent = attendanceDateDisplay;
 }
 
 const initialSavedAttendance = window.initialSavedAttendance || {};
@@ -136,7 +131,6 @@ updateAttendanceStats();
 
 saveAttendanceButton?.addEventListener("click", async () => {
     const payload = {
-        date: todayIsoDate,
         attendance: attendanceButtons.map((button) => ({
             student_id: Number(button.dataset.studentId),
             status: getStatusState(button),
@@ -158,13 +152,7 @@ saveAttendanceButton?.addEventListener("click", async () => {
             return;
         }
 
-        const displayDate = new Date(`${todayIsoDate}T00:00:00`).toLocaleDateString("en-GB", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-        });
-
-        attendanceMessage.textContent = `✓ Attendance saved successfully. Date: ${displayDate} Present: ${result.present} Absent: ${result.absent}`;
+        attendanceMessage.textContent = `✓ Attendance saved successfully. Date: ${result.date} Present: ${result.present} Absent: ${result.absent}`;
     } catch (error) {
         attendanceMessage.textContent = "Unable to save attendance right now.";
     }

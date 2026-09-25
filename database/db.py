@@ -1,7 +1,7 @@
 import os
 import re
 import sqlite3
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "database.db")
@@ -11,21 +11,81 @@ DB_PATH = os.path.join(BASE_DIR, "database.db")
 ROLL_NUMBER_PATTERN = re.compile(r"^[A-Za-z0-9]+$")
 
 
-def get_connection() -> sqlite3.Connection:
-    """Create a SQLite connection with rows returned as dictionaries."""
+class DatabaseConnection:
+    """Small compatibility wrapper for SQLite and psycopg2 connections."""
+
+    def __init__(self, connection: Any, is_postgres: bool):
+        self.connection = connection
+        self.is_postgres = is_postgres
+
+    def _cursor(self) -> Any:
+        if self.is_postgres:
+            from psycopg2.extras import DictCursor
+
+            return self.connection.cursor(cursor_factory=DictCursor)
+        return self.connection.cursor()
+
+    def _query(self, query: str) -> str:
+        return query.replace("?", "%s") if self.is_postgres else query
+
+    def execute(self, query: str, parameters: tuple = ()) -> Any:
+        cursor = self._cursor()
+        cursor.execute(self._query(query), parameters)
+        return cursor
+
+    def executemany(self, query: str, parameters: List[tuple]) -> Any:
+        cursor = self._cursor()
+        cursor.executemany(self._query(query), parameters)
+        return cursor
+
+    def commit(self) -> None:
+        self.connection.commit()
+
+    def rollback(self) -> None:
+        self.connection.rollback()
+
+    def close(self) -> None:
+        self.connection.close()
+
+    def __enter__(self) -> "DatabaseConnection":
+        return self
+
+    def __exit__(self, exception_type: Any, exception_value: Any, traceback: Any) -> None:
+        try:
+            if exception_type:
+                self.rollback()
+            else:
+                self.commit()
+        finally:
+            self.close()
+
+
+def get_connection() -> DatabaseConnection:
+    """Create a connection for DATABASE_URL or the existing local SQLite file."""
+    database_url = os.getenv("DATABASE_URL", "").strip()
+    if database_url == "PASTE_YOUR_NEON_CONNECTION_STRING_HERE":
+        database_url = ""
+    if database_url:
+        try:
+            import psycopg2
+        except ImportError as exc:
+            raise RuntimeError("PostgreSQL support requires psycopg2-binary.") from exc
+        return DatabaseConnection(psycopg2.connect(database_url), is_postgres=True)
+
     connection = sqlite3.connect(DB_PATH)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
-    return connection
+    return DatabaseConnection(connection, is_postgres=False)
 
 
 def init_db() -> None:
     """Create the required SQLite tables if they do not already exist."""
     with get_connection() as connection:
+        student_id_definition = "SERIAL PRIMARY KEY" if connection.is_postgres else "INTEGER PRIMARY KEY AUTOINCREMENT"
         connection.execute(
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS students (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {student_id_definition},
                 roll_number TEXT NOT NULL UNIQUE,
                 name TEXT NOT NULL,
                 display_order INTEGER NOT NULL DEFAULT 0
@@ -33,9 +93,17 @@ def init_db() -> None:
             """
         )
 
-        student_columns = {
-            row["name"] for row in connection.execute("PRAGMA table_info(students)").fetchall()
-        }
+        if connection.is_postgres:
+            student_column_rows = connection.execute(
+                """
+                SELECT column_name AS name
+                FROM information_schema.columns
+                WHERE table_schema = current_schema() AND table_name = 'students'
+                """
+            ).fetchall()
+        else:
+            student_column_rows = connection.execute("PRAGMA table_info(students)").fetchall()
+        student_columns = {row["name"] for row in student_column_rows}
         if "display_order" not in student_columns:
             connection.execute("ALTER TABLE students ADD COLUMN display_order INTEGER NOT NULL DEFAULT 0")
 
@@ -48,9 +116,9 @@ def init_db() -> None:
         )
 
         connection.execute(
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS attendance (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {student_id_definition},
                 attendance_date TEXT NOT NULL,
                 student_id INTEGER NOT NULL,
                 status TEXT NOT NULL CHECK(status IN ('present', 'absent')),
