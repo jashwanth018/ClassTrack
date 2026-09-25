@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance | ClassTrack{% endblock %}
+
+{% block content %}
+<script>
+    window.initialSavedAttendance = {{ saved_attendance|tojson }};
+    window.attendanceDate = {{ attendance_date|tojson }};
+</script>
+<section class="page-heading reveal">
+    <div>
+        <p class="eyebrow">Daily register</p>
+        <h1>Attendance</h1>
+        <p class="page-description">Record today’s attendance for your class.</p>
+    </div>
+    <div class="date-display"><span>Today’s Date</span><strong id="today-date">—</strong></div>
+</section>
+
+<section class="stats-grid compact reveal" aria-label="Today’s attendance summary">
+    <article class="stat-card">
+        <div>
+            <p class="stat-label">Total</p>
+            <p class="stat-value" id="attendance-total">0</p>
+        </div>
+    </article>
+    <article class="stat-card">
+        <div>
+            <p class="stat-label">Present</p>
+            <p class="stat-value" id="attendance-present">0</p>
+        </div>
+    </article>
+    <article class="stat-card">
+        <div>
+            <p class="stat-label">Absent</p>
+            <p class="stat-value" id="attendance-absent">0</p>
+        </div>
+    </article>
+    <article class="stat-card">
+        <div>
+            <p class="stat-label">Attendance %</p>
+            <p class="stat-value" id="attendance-percent">0.00%</p>
+        </div>
+    </article>
+</section>
+
+<section class="panel reveal" aria-labelledby="attendance-list-title">
+    <div class="attendance-toolbar">
+        <div>
+            <h2 id="attendance-list-title">Class list</h2>
+        </div>
+        <div class="attendance-actions">
+            <button class="button button-secondary attendance-mark-all" type="button">Mark All Present</button>
+            <button class="button button-secondary attendance-clear-all" type="button">Clear All</button>
+        </div>
+    </div>
+
+    <div class="attendance-search-wrap">
+        <label class="attendance-search" for="attendance-search">
+            <span aria-hidden="true">⌕</span>
+            <input id="attendance-search" type="search" placeholder="Search roll number / student" aria-label="Search roll number / student">
+        </label>
+    </div>
+
+    <div class="attendance-grid" id="attendance-grid" aria-live="polite">
+        {% if students %}
+            {% for student in students %}
+                {% set display_label = student.roll_number[-2:] %}
+                <button
+                    class="attendance-bubble absent"
+                    type="button"
+                    data-student-id="{{ student.id }}"
+                    data-roll-number="{{ student.roll_number }}"
+                    data-name="{{ student.name }}"
+                    data-display-label="{{ display_label }}"
+                    aria-label="Roll number {{ student.roll_number }}, {{ student.name }}, currently absent"
+                >{{ display_label }}</button>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state"><span class="empty-icon" aria-hidden="true">☷</span><p>No nominal roll available.</p><span>Please upload the nominal roll before taking attendance.</span><a class="button button-primary" href="{{ url_for('students') }}">Go to Students</a></div>
+        {% endif %}
+    </div>
+
+    <div class="panel-actions attendance-save-row">
+        <button class="button button-primary" type="button" id="save-attendance-button">SAVE ATTENDANCE</button>
+    </div>
+    <p class="attendance-message" id="attendance-message" aria-live="polite"></p>
+</section>
+{% endblock %}

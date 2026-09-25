@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Enter Passcode | ClassTrack{% endblock %}
+{% block page_class %}login-page{% endblock %}
+
+{% block app_header %}
+<header class="site-header">
+    <nav class="navbar container" aria-label="ClassTrack">
+        <a class="brand" href="{{ url_for('login') }}">ClassTrack</a>
+    </nav>
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="login-card reveal" aria-labelledby="login-title">
+    <div class="login-mark" aria-hidden="true">C</div>
+    <p class="eyebrow">CR access</p>
+    <h1 id="login-title">ClassTrack</h1>
+    <p class="login-subtitle">CR Attendance Management System</p>
+    <form method="post" class="login-form">
+        <label for="passcode">Enter Passcode</label>
+        <input id="passcode" name="passcode" type="password" autocomplete="current-password" required autofocus>
+        {% if error %}<p class="form-error" role="alert">{{ error }}</p>{% endif %}
+        <button class="button button-primary" type="submit">Enter ClassTrack</button>
+    </form>
+</section>
+{% endblock %}

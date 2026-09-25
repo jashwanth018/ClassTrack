@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Students | ClassTrack{% endblock %}
+
+{% block content %}
+<section class="page-heading reveal">
+    <div>
+        <p class="eyebrow">Class directory</p>
+        <h1>Students</h1>
+        <p class="page-description">Manage the students in your class.</p>
+    </div>
+</section>
+
+<section class="panel reveal" style="margin-bottom: 24px;">
+    <div class="panel-heading" style="margin-bottom: 18px;">
+        <div>
+            <h2>Import Nominal Roll</h2>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="input-row" style="flex-wrap: wrap; align-items: center;">
+        <input type="file" name="excel_file" accept=".xlsx" aria-label="Choose Excel File" style="padding: 10px;">
+        <button class="button button-primary" type="submit">Import Nominal Roll</button>
+    </form>
+
+    {% if message %}
+        <p class="form-error" style="margin-top: 16px; color: {% if message_type == 'success' %}var(--green){% else %}var(--red){% endif %};">{{ message }}</p>
+    {% endif %}
+</section>
+
+<section class="panel reveal">
+    <div class="table-toolbar">
+        <div>
+            <p class="stat-label">Total Students</p>
+            <p class="toolbar-value">{{ total_students }}</p>
+        </div>
+        <form method="get" class="search-field" style="margin: 0;">
+            <span class="sr-only">Search Student / Roll Number</span>
+            <span aria-hidden="true">⌕</span>
+            <input type="search" name="q" value="{{ search_term }}" placeholder="Search Student / Roll Number">
+        </form>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Roll Number</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if students %}
+                    {% for student in students %}
+                        <tr>
+                            <td>{{ student["roll_number"] }}</td>
+                            <td>{{ student["name"] }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="2">
+                            <div class="empty-state small">
+                                {% if total_students %}
+                                    <span>No students found.</span>
+                                {% else %}
+                                    <span>No nominal roll uploaded yet.</span>
+                                    <span>Upload the official nominal roll to add students.</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

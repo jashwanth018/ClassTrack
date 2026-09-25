@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}ClassTrack{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% block app_header %}
+    <header class="site-header">
+        <nav class="navbar container" aria-label="Main navigation">
+            <a class="brand" href="{{ url_for('home') }}">ClassTrack</a>
+            <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-content">
+                <div class="nav-links">
+                    <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Dashboard</a>
+                    <a class="nav-link {% if request.endpoint == 'attendance' %}active{% endif %}" href="{{ url_for('attendance') }}">Attendance</a>
+                    <a class="nav-link {% if request.endpoint == 'records' %}active{% endif %}" href="{{ url_for('records') }}">Records</a>
+                    <a class="nav-link {% if request.endpoint == 'students' %}active{% endif %}" href="{{ url_for('students') }}">Students</a>
+                    <a class="nav-link logout-link" href="{{ url_for('logout') }}">Logout</a>
+                </div>
+                <button class="theme-toggle" type="button" aria-label="Switch to dark theme" title="Toggle theme">
+                    <span class="theme-icon" aria-hidden="true">☼</span>
+                    <span class="theme-label">Light mode</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+    {% endblock %}
+
+    <main class="page-shell container {% block page_class %}{% endblock %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner container">
+            <div>
+                <a class="footer-brand" href="{{ url_for('home') }}">ClassTrack</a>
+                <p>Simple Attendance Management System</p>
+            </div>
+            <a class="footer-link" href="#about">About</a>
+            <p class="copyright">&copy; 2026 ClassTrack</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

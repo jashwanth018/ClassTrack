@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | ClassTrack{% endblock %}
+
+{% block content %}
+<section class="page-heading reveal">
+    <div>
+        <p class="eyebrow">Overview</p>
+        <h1>Welcome to ClassTrack</h1>
+        <p class="page-description">A clear view of your class attendance at a glance.</p>
+    </div>
+    <a class="button button-primary" href="{{ url_for('attendance') }}">Mark Attendance</a>
+</section>
+
+<section class="stats-grid dashboard-stats reveal" aria-label="Today's attendance summary">
+    <article class="stat-card">
+        <div class="stat-icon blue" aria-hidden="true">#</div>
+        <div><p class="stat-label">Total Students</p><p class="stat-value">{{ today_attendance.total }}</p></div>
+    </article>
+    <article class="stat-card">
+        <div class="stat-icon green" aria-hidden="true">✓</div>
+        <div><p class="stat-label">Present Today</p><p class="stat-value">{{ today_attendance.present }}</p></div>
+    </article>
+    <article class="stat-card">
+        <div class="stat-icon red" aria-hidden="true">!</div>
+        <div><p class="stat-label">Absent Today</p><p class="stat-value">{{ today_attendance.absent }}</p></div>
+    </article>
+    <article class="stat-card">
+        <div class="stat-icon blue" aria-hidden="true">%</div>
+        <div><p class="stat-label">Attendance %</p><p class="stat-value">{{ "%.2f"|format(today_attendance.percentage) }}%</p></div>
+    </article>
+</section>
+
+<section class="panel dashboard-status reveal">
+    <div class="panel-heading">
+        <div><p class="eyebrow">Daily register</p><h2>Today's Attendance</h2></div>
+        <span class="date-display"><strong>{{ today_attendance.date_display }}</strong></span>
+    </div>
+    {% if today_attendance.has_records %}
+        <div class="dashboard-status-values">
+            <span>Present: {{ today_attendance.present }}</span>
+            <span>Absent: {{ today_attendance.absent }}</span>
+            <span>Attendance: {{ "%.2f"|format(today_attendance.percentage) }}%</span>
+        </div>
+    {% else %}
+        <p class="muted">No attendance recorded for today.</p>
+    {% endif %}
+    {% if today_attendance.total == 0 %}
+        <p class="muted">No students added yet. Upload the nominal roll to get started.</p>
+        <a class="button button-secondary" href="{{ url_for('students') }}">Import Students</a>
+    {% else %}
+        <a class="button button-primary" href="{{ url_for('attendance') }}">Mark Attendance</a>
+    {% endif %}
+</section>
+
+<section class="panel recent-attendance reveal">
+    <div class="panel-heading">
+        <div><p class="eyebrow">History</p><h2>Recent Attendance</h2></div>
+        <a class="button button-secondary" href="{{ url_for('records') }}">View Records</a>
+    </div>
+    {% if recent_attendance %}
+        <div class="recent-list">
+            {% for record in recent_attendance %}
+                <div class="recent-row">
+                    <strong>{{ record.date_display }}</strong>
+                    <span>{{ record.present }} / {{ record.total }}</span>
+                    <span>{{ "%.2f"|format(record.percentage) }}%</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state small"><span>No attendance records yet.</span><a class="button button-primary" href="{{ url_for('attendance') }}">Mark First Attendance</a></div>
+    {% endif %}
+</section>
+
+<section class="panel quick-actions reveal">
+    <div class="panel-heading"><div><p class="eyebrow">Shortcuts</p><h2>Quick Actions</h2></div></div>
+    <div class="quick-action-links">
+        <a class="button button-primary" href="{{ url_for('attendance') }}">Mark Attendance</a>
+        <a class="button button-secondary" href="{{ url_for('records') }}">View Records</a>
+        <a class="button button-secondary" href="{{ url_for('students') }}">Manage Students</a>
+    </div>
+</section>
+{% endblock %}

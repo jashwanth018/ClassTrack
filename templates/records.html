@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Records | ClassTrack{% endblock %}
+
+{% block content %}
+<section class="page-heading reveal">
+    <div><p class="eyebrow">History</p><h1>Attendance Records</h1><p class="page-description">View attendance for any recorded date.</p></div>
+    <div class="date-picker"><label for="record-date">Select Date</label><div class="input-row"><input id="record-date" type="date"><button class="button button-secondary" type="button" id="record-date-button">OK</button></div></div>
+</section>
+
+<section class="panel records-results reveal" aria-live="polite">
+    <div class="records-search-wrap">
+        <label class="attendance-search" for="records-search">
+            <span aria-hidden="true">⌕</span>
+            <input id="records-search" type="search" placeholder="Search roll number / student" aria-label="Search roll number / student" disabled>
+        </label>
+    </div>
+
+    <div class="stats-grid compact records-stats" id="records-stats" hidden>
+        <article class="stat-card"><div><p class="stat-label">Total Students</p><p class="stat-value" id="records-total">0</p></div></article>
+        <article class="stat-card"><div><p class="stat-label">Present</p><p class="stat-value" id="records-present">0</p></div></article>
+        <article class="stat-card"><div><p class="stat-label">Absent</p><p class="stat-value" id="records-absent">0</p></div></article>
+        <article class="stat-card"><div><p class="stat-label">Attendance %</p><p class="stat-value" id="records-percentage">0.00%</p></div></article>
+    </div>
+
+    <div class="records-grid" id="records-lists" hidden>
+        <div class="panel record-panel"><div class="section-title"><span class="status-dot present"></span><h2>PRESENT</h2><span class="count-badge" id="records-present-count">0</span></div><div class="record-list" id="records-present-list"></div></div>
+        <div class="panel record-panel"><div class="section-title"><span class="status-dot absent"></span><h2>ABSENT</h2><span class="count-badge" id="records-absent-count">0</span></div><div class="record-list" id="records-absent-list"></div></div>
+    </div>
+
+    <div class="empty-state small" id="records-empty"><span>Select a date and click OK to view attendance.</span></div>
+    <div class="empty-state small" id="records-no-data" hidden><span id="records-no-data-text"></span><span>Please select another recorded date.</span></div>
+</section>
+
+<div class="page-actions reveal records-copy-actions">
+    <button class="button button-secondary" type="button" id="copy-full-report-button" disabled>Copy Full Report</button>
+    <button class="button button-secondary" type="button" id="copy-absentees-button" disabled>Copy Absentees Only</button>
+</div>
+<p class="attendance-message records-message" id="records-message" aria-live="polite"></p>
+{% endblock %}
